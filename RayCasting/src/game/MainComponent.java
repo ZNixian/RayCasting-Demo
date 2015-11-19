@@ -14,7 +14,7 @@ import javax.swing.JFrame;
 public class MainComponent extends Canvas implements Runnable {
 	private static final long serialVersionUID = 1L;
 
-	public static final int WIDTH = 140;
+	public static final int WIDTH = 160;
 	public static final int HEIGHT = WIDTH * 3 / 4;
 	public static final int SCALE = 4;
 	public static final String TITLE = "RayCasting demo";
