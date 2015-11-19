@@ -28,6 +28,7 @@ public class MainComponent extends Canvas implements Runnable {
 
 	private Game game;
 	private Screen screen;
+	private InputHandler inputHandler;
 	
 	public MainComponent() {
 		Dimension d = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
@@ -37,6 +38,15 @@ public class MainComponent extends Canvas implements Runnable {
 		
 		img = new BufferedImage(WIDTH, HEIGHT,BufferedImage.TYPE_INT_RGB);
 		pixels = ((DataBufferInt) img.getRaster().getDataBuffer()).getData();
+		
+		inputHandler = new InputHandler();
+		
+		addKeyListener(inputHandler);
+		addMouseMotionListener(inputHandler);
+		addFocusListener(inputHandler);
+		addMouseMotionListener(inputHandler);
+		addMouseWheelListener(inputHandler);
+		
 	}
 
 	public void start() {
@@ -121,7 +131,7 @@ public class MainComponent extends Canvas implements Runnable {
 	}
 
 	public void update() {
-		game.update();
+		game.update(inputHandler.keys);
 		screen.update();
 	}
 

@@ -1,6 +1,8 @@
 package gfx;
 
 import game.Game;
+import level.Block;
+import level.Level;
 
 public class Bitmap3D extends Bitmap {
 
@@ -17,13 +19,17 @@ public class Bitmap3D extends Bitmap {
 
 	public void render(Game game) {
 
+		for(int x = 0; x < width;x++) {
+			depthBufferWall[x] = 0;
+		}
+		
 		fov = height;
 
-		xCam = 0;
-		yCam = 0;
+		xCam = game.player.x;
+		yCam = game.player.y;
 		zCam = 0;
-		// rot = Math.sin(game.time / 40.0) * 0.5;
-		rot = 0.3;
+		rot = Math.sin(game.time / 40.0) * 0.5;
+		rot = game.player.rot;
 
 		rSin = Math.sin(rot);
 		rCos = Math.cos(rot);
@@ -53,11 +59,36 @@ public class Bitmap3D extends Bitmap {
 				pixels[x + y * width] = Textures.floors.pixels[(xPix & 15) + 16 | (yPix & 15) * Textures.floors.width];
 			}
 		}
-		renderWall(0, 2, 1, 2);
-		renderWall(0, 1, 0, 2);
-		renderWall(-0.2, 1, -0.2, 2);
-		// renderWall(1, 2, 1, 1);
-		// renderWall(1, 1, 1, 0);
+		
+//		renderWall(0, 2, 1, 2);
+//		renderWall(0, 1, 0, 2);
+//		renderWall(0, 0, 0, 1);
+//		renderWall(1, 2, 1, 1);
+//		renderWall(1, 1, 1, 0);
+		
+		Level level = game.level;
+		for(int y = -1; y <= level.height;y++) {
+			for(int x = -1; x <= level.width;x++) {
+				Block c = level.getBlock(x, y);
+				//east west south north
+				Block e = level.getBlock(x + 1, y);
+				Block w = level.getBlock(x - 1, y);
+				Block s = level.getBlock(x, y - 1);
+				Block n = level.getBlock(x, y + 1);
+				
+				if(!c.SOLID)
+					continue;
+				
+				if(!e.SOLID) 
+					renderWall(x + 1, y, x + 1, y + 1);
+				if(!w.SOLID) 
+					renderWall(x, y + 1, x, y);
+				if(!s.SOLID) 
+					renderWall(x, y, x + 1, y);
+				if(!n.SOLID) 
+					renderWall(x + 1, y + 1, x, y + 1);
+			}
+		}
 	}
 
 	public void renderWall(double x0, double y0, double x1, double y1) {
@@ -145,18 +176,18 @@ public class Bitmap3D extends Bitmap {
 
 				depthBuffer[x + y * width] = 12 / iz;
 				// depthBuffer[x + y * width] = 0;
-				pixels[x + y * width] = Textures.floors.pixels[xTex + 16 + (yTex * Textures.floors.width)];
+				pixels[x + y * width] = Textures.floors.pixels[(xTex & 15) + 0 + ((yTex & 15) * Textures.floors.width)];
 			}
 		}
 	}
 
-	public void drawFloor(double xx, double yy, double yd, int x, int y, int xPix, int yPix, int pX, int pY) {
+	public void renderFloor(double xx, double yy, double yd, int x, int y, int xPix, int yPix, int pX, int pY) {
 		if (yd >= 0 && xx >= pX * 16 && xx < pX * 16 + 16 && yy >= pY * 16 && yy < pY * 16 + 16) {
 			pixels[x + y * width] = Textures.floors.pixels[(xPix & 15) + 16 | (yPix & 15) * Textures.floors.width];
 		}
 	}
 
-	public void drawCeiling(double xx, double yy, double yd, int x, int y, int xPix, int yPix, int pX, int pY) {
+	public void renderCeiling(double xx, double yy, double yd, int x, int y, int xPix, int yPix, int pX, int pY) {
 		if (yd <= 0 && xx >= pX * 16 && xx < pX * 16 + 16 && yy >= pY * 16 && yy < pY * 16 + 16) {
 			pixels[x + y * width] = Textures.floors.pixels[(xPix & 15) + 16 | (yPix & 15) * Textures.floors.width];
 		}
@@ -170,7 +201,7 @@ public class Bitmap3D extends Bitmap {
 			int g = (col >> 8) & 0xff;
 			int b = (col) & 0xff;
 
-			double brightness = 50000 / (depthBuffer[i] * depthBuffer[i]);
+			double brightness = 100000 / (depthBuffer[i] * depthBuffer[i]);
 
 			if (brightness < 0)
 				brightness = 0;
