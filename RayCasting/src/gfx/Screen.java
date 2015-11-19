@@ -1,5 +1,7 @@
 package gfx;
 
+import game.Game;
+
 import java.util.Random;
 
 public class Screen extends Bitmap{
@@ -20,15 +22,9 @@ public class Screen extends Bitmap{
 		perspectiveVison = new Bitmap3D(width, height);
 	}
 
-	int t = 0;
-	
-	public void render() {
-		t++;
-		int ox = (int) (Math.sin(t / 1000.0) * width / 2);
-		int oy = (int) (Math.cos(t / 1000.0) * height / 2);
-		
+	public void render(Game game) {
 		clear();
-		perspectiveVison.render();
+		perspectiveVison.render(game);
 		perspectiveVison.renderFog();
 		render(perspectiveVison,0,0);
 		//render(test, (width - 50) / 2 + ox,(height - 50) / 2 + oy);
