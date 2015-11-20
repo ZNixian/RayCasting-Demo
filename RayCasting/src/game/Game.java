@@ -11,8 +11,8 @@ public class Game {
 	public int time;
 	
 	public Game() {
-		player = new Player();
 		level = new Level(32, 32,100);
+		player = new Player(this);
 	}
 	
 	public void update(boolean[] keys) {

@@ -1,10 +1,11 @@
 package level;
 
 public class Block {
-	public final boolean SOLID;
+	public  boolean SOLID_RENDER = false;
+	public  boolean SOLID_MOTION = false;
 
-	public Block(boolean SOLID) {
-		this.SOLID = SOLID;
+	public Block() {
+		
 	}
 	
 	

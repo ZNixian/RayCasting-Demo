@@ -8,7 +8,7 @@ public class Bitmap3D extends Bitmap {
 
 	private double[] depthBuffer;
 	private double[] depthBufferWall;
-	private double xCam, yCam, zCam, rot, rSin, rCos, fov;
+	private double xCam, yCam, zCam, rot, rSin, rCos, fov, xCenter, yCenter;
 
 	public Bitmap3D(int width, int height) {
 		super(width, height);
@@ -19,15 +19,17 @@ public class Bitmap3D extends Bitmap {
 
 	public void render(Game game) {
 
-		for(int x = 0; x < width;x++) {
+		for (int x = 0; x < width; x++) {
 			depthBufferWall[x] = 0;
 		}
-		
+
 		fov = height;
+		xCenter = width / 2.0;
+		yCenter = height / 3.0;
 
 		xCam = game.player.x;
 		yCam = game.player.y;
-		zCam = 0;
+		zCam = 1.7;
 		rot = Math.sin(game.time / 40.0) * 0.5;
 		rot = game.player.rot;
 
@@ -35,17 +37,17 @@ public class Bitmap3D extends Bitmap {
 		rCos = Math.cos(rot);
 
 		for (int y = 0; y < height; y++) {
-			double yd = ((y + 0.5) - (height / 2)) / fov;
+			double yd = ((y + 0.5) - (yCenter)) / fov;
 			double zd = (4 + zCam) / yd;
 			if (yd < 0)
 				zd = (4 - zCam) / -yd;
 
 			for (int x = 0; x < width; x++) {
-				double xd = (x - (width / 2)) / fov;
+				double xd = (x - xCenter) / fov;
 				xd *= zd;
 
 				double xx = xd * rCos - zd * rSin + (xCam + 0.5) * 8;
-				double yy = xd * rSin + zd * rCos + (yCam) * 8;
+				double yy = xd * rSin + zd * rCos + (yCam + 0.5) * 8;
 
 				int xPix = (int) xx * 2;
 				int yPix = (int) yy * 2;
@@ -59,33 +61,33 @@ public class Bitmap3D extends Bitmap {
 				pixels[x + y * width] = Textures.floors.pixels[(xPix & 15) + 16 | (yPix & 15) * Textures.floors.width];
 			}
 		}
-		
-//		renderWall(0, 2, 1, 2);
-//		renderWall(0, 1, 0, 2);
-//		renderWall(0, 0, 0, 1);
-//		renderWall(1, 2, 1, 1);
-//		renderWall(1, 1, 1, 0);
-		
+
+		// renderWall(0, 2, 1, 2);
+		// renderWall(0, 1, 0, 2);
+		// renderWall(0, 0, 0, 1);
+		// renderWall(1, 2, 1, 1);
+		// renderWall(1, 1, 1, 0);
+
 		Level level = game.level;
-		for(int y = -1; y <= level.height;y++) {
-			for(int x = -1; x <= level.width;x++) {
+		for (int y = -1; y <= level.height; y++) {
+			for (int x = -1; x <= level.width; x++) {
 				Block c = level.getBlock(x, y);
-				//east west south north
+				// east west south north
 				Block e = level.getBlock(x + 1, y);
 				Block w = level.getBlock(x - 1, y);
 				Block s = level.getBlock(x, y - 1);
 				Block n = level.getBlock(x, y + 1);
-				
-				if(!c.SOLID)
+
+				if (!c.SOLID_RENDER)
 					continue;
-				
-				if(!e.SOLID) 
+
+				if (!e.SOLID_RENDER)
 					renderWall(x + 1, y, x + 1, y + 1);
-				if(!w.SOLID) 
+				if (!w.SOLID_RENDER)
 					renderWall(x, y + 1, x, y);
-				if(!s.SOLID) 
+				if (!s.SOLID_RENDER)
 					renderWall(x, y, x + 1, y);
-				if(!n.SOLID) 
+				if (!n.SOLID_RENDER)
 					renderWall(x + 1, y + 1, x, y + 1);
 			}
 		}
@@ -95,7 +97,7 @@ public class Bitmap3D extends Bitmap {
 		double xo0 = x0 - 0.5 - xCam;
 		double u0 = -0.5 + zCam / 8;
 		double d0 = 0.5 + zCam / 8;
-		double zo0 = y0 - yCam;
+		double zo0 = y0 - 0.5- yCam;
 
 		double xx0 = xo0 * rCos + zo0 * rSin;
 		double zz0 = -xo0 * rSin + zo0 * rCos;
@@ -103,7 +105,7 @@ public class Bitmap3D extends Bitmap {
 		double xo1 = x1 - 0.5 - xCam;
 		double u1 = -0.5 + zCam / 8;
 		double d1 = 0.5 + zCam / 8;
-		double zo1 = y1 - yCam;
+		double zo1 = y1 - 0.5 - yCam;
 
 		double xx1 = xo1 * rCos + zo1 * rSin;
 		double zz1 = -xo1 * rSin + zo1 * rCos;
@@ -112,6 +114,10 @@ public class Bitmap3D extends Bitmap {
 		double t1 = 16;
 
 		double clip = 0.1;
+
+		if (zz0 < clip && zz1 < clip) {
+			return;
+		}
 
 		if (zz0 < clip) {
 			double p = (clip - zz0) / (zz1 - zz0);
@@ -126,8 +132,8 @@ public class Bitmap3D extends Bitmap {
 			t1 = t1 + (t1 - t0) * p;
 		}
 
-		double xPixel0 = xx0 / zz0 * fov + width / 2.0;
-		double xPixel1 = xx1 / zz1 * fov + width / 2.0;
+		double xPixel0 = xx0 / zz0 * fov + xCenter;
+		double xPixel1 = xx1 / zz1 * fov + xCenter;
 
 		if (xPixel0 > xPixel1)
 			return;
@@ -138,10 +144,10 @@ public class Bitmap3D extends Bitmap {
 		if (xp1 > width)
 			xp1 = width;
 
-		double yPixel00 = (u0 / zz0 * fov + height / 2.0) + 0.5;
-		double yPixel10 = (u1 / zz1 * fov + height / 2.0) + 0.5;
-		double yPixel01 = (d0 / zz0 * fov + height / 2.0) + 0.5;
-		double yPixel11 = (d1 / zz1 * fov + height / 2.0) + 0.5;
+		double yPixel00 = (u0 / zz0 * fov + yCenter) + 0.5;
+		double yPixel10 = (u1 / zz1 * fov + yCenter) + 0.5;
+		double yPixel01 = (d0 / zz0 * fov + yCenter) + 0.5;
+		double yPixel11 = (d1 / zz1 * fov + yCenter) + 0.5;
 
 		double iz0 = 1 / zz0;
 		double iz1 = 1 / zz1;
@@ -155,7 +161,7 @@ public class Bitmap3D extends Bitmap {
 			double yPixel1 = yPixel01 + (yPixel11 - yPixel01) * p;
 			double iz = iz0 + (iz1 - iz0) * p;
 
-			if (depthBufferWall[x] > iz) 
+			if (depthBufferWall[x] > iz)
 				continue;
 			depthBufferWall[x] = iz;
 
@@ -176,7 +182,7 @@ public class Bitmap3D extends Bitmap {
 
 				depthBuffer[x + y * width] = 12 / iz;
 				// depthBuffer[x + y * width] = 0;
-				pixels[x + y * width] = Textures.floors.pixels[(xTex & 15) + 0 + ((yTex & 15) * Textures.floors.width)];
+				pixels[x + y * width] = Textures.floors.pixels[(xTex & 15) + 48 + ((yTex & 15) * Textures.floors.width)];
 			}
 		}
 	}
@@ -196,12 +202,15 @@ public class Bitmap3D extends Bitmap {
 	// col = colour
 	public void renderFog() {
 		for (int i = 0; i < depthBuffer.length; i++) {
+			// abs = absolute value of... ie removes the negative (if any)
+			double t = Math.abs(i % width - width / 2.0) / (width / 1.5);
+
 			int col = pixels[i];
 			int r = (col >> 16) & 0xff;
 			int g = (col >> 8) & 0xff;
 			int b = (col) & 0xff;
 
-			double brightness = 100000 / (depthBuffer[i] * depthBuffer[i]);
+			double brightness = 255 - (depthBuffer[i] * 3 * (t * t * 3 + 1));
 
 			if (brightness < 0)
 				brightness = 0;
