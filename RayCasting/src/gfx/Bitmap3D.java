@@ -3,6 +3,7 @@ package gfx;
 import game.Game;
 import level.Block;
 import level.Level;
+import level.Sprite;
 
 public class Bitmap3D extends Bitmap {
 
@@ -91,13 +92,77 @@ public class Bitmap3D extends Bitmap {
 					renderWall(x + 1, y + 1, x, y + 1);
 			}
 		}
+
+		// sprite jazz
+		for (int y = -1; y <= level.height; y++) {
+			for (int x = -1; x <= level.width; x++) {
+				Block c = level.getBlock(x, y);
+
+				for (int i = 0; i < c.sprites.size(); i++) {
+					Sprite sprite = c.sprites.get(i);
+
+					renderSprite(x + sprite.x, sprite.y, y + sprite.z);
+				}
+			}
+		}
+	}
+
+	public void renderSprite(double x, double y, double z) {
+		double xo = x - xCam;
+		double yo = y + zCam / 8;
+		double zo = z - yCam;
+
+		double xx = xo * rCos + zo * rSin;
+		double yy = yo;
+		double zz = -xo * rSin + zo * rCos;
+
+		if (zz < 0.1)
+			return;
+
+		double xPixel0 = xx / zz * fov + xCenter - (fov / 2) / zz;
+		double xPixel1 = xx / zz * fov + xCenter + (fov / 2) / zz;
+		double yPixel0 = yy / zz * fov + yCenter - (fov / 2) / zz;
+		double yPixel1 = yy / zz * fov + yCenter + (fov / 2) / zz;
+
+		int xp0 = (int) xPixel0;
+		int xp1 = (int) xPixel1;
+		int yp0 = (int) yPixel0;
+		int yp1 = (int) yPixel1;
+
+		if (xp0 < 0)
+			xp0 = 0;
+		if (xp1 > width)
+			xp1 = width;
+		if (yp0 < 0)
+			yp0 = 0;
+		if (yp1 > height)
+			yp1 = height;
+
+		zz *= 8;
+		for (int yp = yp0; yp < yp1; yp++) {
+			double pry = (yp - yPixel0) / (yPixel1 - yPixel0);
+			int yt = (int) (pry * 16.0);
+
+			for (int xp = xp0; xp < xp1; xp++) {
+				double prx = (xp - xPixel0) / (xPixel1 - xPixel0);
+				int xt = (int) (prx * 16.0);
+
+				if (depthBuffer[xp + yp * width] > zz) {
+					int col = Textures.floors.pixels[(xt & 15) + 64 + (yt & 15) * Textures.floors.width];
+					if (col != 0xff00ff) {
+						pixels[xp + yp * width] = col;
+						depthBuffer[xp + yp * width] = zz;
+					}
+				}
+			}
+		}
 	}
 
 	public void renderWall(double x0, double y0, double x1, double y1) {
 		double xo0 = x0 - 0.5 - xCam;
 		double u0 = -0.5 + zCam / 8;
 		double d0 = 0.5 + zCam / 8;
-		double zo0 = y0 - 0.5- yCam;
+		double zo0 = y0 - 0.5 - yCam;
 
 		double xx0 = xo0 * rCos + zo0 * rSin;
 		double zz0 = -xo0 * rSin + zo0 * rCos;
@@ -180,9 +245,9 @@ public class Bitmap3D extends Bitmap {
 				double py = (y - yPixel0) / (yPixel1 - yPixel0);
 				int yTex = (int) (py * 16);
 
-				depthBuffer[x + y * width] = 12 / iz;
+				depthBuffer[x + y * width] = 8 / iz;
 				// depthBuffer[x + y * width] = 0;
-				pixels[x + y * width] = Textures.floors.pixels[(xTex & 15) + 48 + ((yTex & 15) * Textures.floors.width)];
+				pixels[x + y * width] = Textures.floors.pixels[(xTex & 15) + 32 + ((yTex & 15) * Textures.floors.width)];
 			}
 		}
 	}

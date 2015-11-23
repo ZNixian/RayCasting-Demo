@@ -14,13 +14,19 @@ public class Level {
 
 		// so thats how you do it!
 		Random r = new Random(seed);
-
+		
 		for (int i = 0; i < tile.length; i++) {
-			if (r.nextInt(15) < 3) {
-				tile[i] = new BlockSolid();
+			Block block = null;
+
+			if (r.nextInt(7) == 0) {
+				block = new BlockSolid();
 			} else {
-				tile[i] = new Block();
+				block = new Block();
+				if (r.nextInt(5) == 0) 
+					block.addSprite(new Sprite(0, 0, 0));
 			}
+
+			tile[i] = block;
 		}
 	}
 

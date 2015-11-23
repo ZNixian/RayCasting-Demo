@@ -9,7 +9,7 @@ public class Player {
 	public double x, y, xa, ya, ra, rot;
 
 	public Player(Game game) {
-		this(game, 0.5, 0.5);
+		this(game, 0, 0);
 	}
 
 	public Player(Game game, double x, double y) {
