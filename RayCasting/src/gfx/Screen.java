@@ -25,7 +25,7 @@ public class Screen extends Bitmap{
 	public void render(Game game) {
 		clear();
 		perspectiveVison.render(game);
-		perspectiveVison.renderFog();
+		perspectiveVison.renderFog(3);
 		render(perspectiveVison,0,0);
 		//render(test, (width - 50) / 2 + ox,(height - 50) / 2 + oy);
 	

@@ -36,12 +36,18 @@ public class Bitmap3D extends Bitmap {
 
 		rSin = Math.sin(rot);
 		rCos = Math.cos(rot);
+		
+		int ceilCol = 0x303030;
+		int floorCol = 0x402020;
 
 		for (int y = 0; y < height; y++) {
 			double yd = ((y + 0.5) - (yCenter)) / fov;
 			double zd = (4 + zCam) / yd;
-			if (yd < 0)
+			int col = floorCol;
+			if (yd < 0) {
+				col = ceilCol;
 				zd = (4 - zCam) / -yd;
+			}
 
 			for (int x = 0; x < width; x++) {
 				double xd = (x - xCenter) / fov;
@@ -59,7 +65,7 @@ public class Bitmap3D extends Bitmap {
 					yPix--;
 
 				depthBuffer[x + y * width] = zd;
-				pixels[x + y * width] = Textures.floors.pixels[(xPix & 15) + 16 | (yPix & 15) * Textures.floors.width];
+				pixels[x + y * width] = Textures.textures.pixels[(xPix & 15) | (yPix & 15) * Textures.textures.width] * col;
 			}
 		}
 
@@ -82,14 +88,16 @@ public class Bitmap3D extends Bitmap {
 				if (!c.SOLID_RENDER)
 					continue;
 
+				int col = 0x552205;
+				
 				if (!e.SOLID_RENDER)
-					renderWall(x + 1, y, x + 1, y + 1);
+					renderWall(x + 1, y, x + 1, y + 1, (col & 0xfefefe) >> 1);
 				if (!w.SOLID_RENDER)
-					renderWall(x, y + 1, x, y);
+					renderWall(x, y + 1, x, y, (col & 0xfefefe) >> 1);
 				if (!s.SOLID_RENDER)
-					renderWall(x, y, x + 1, y);
+					renderWall(x, y, x + 1, y, col);
 				if (!n.SOLID_RENDER)
-					renderWall(x + 1, y + 1, x, y + 1);
+					renderWall(x + 1, y + 1, x, y + 1, col);
 			}
 		}
 
@@ -101,13 +109,13 @@ public class Bitmap3D extends Bitmap {
 				for (int i = 0; i < c.sprites.size(); i++) {
 					Sprite sprite = c.sprites.get(i);
 
-					renderSprite(x + sprite.x, sprite.y, y + sprite.z);
+					renderSprite(x + sprite.x, sprite.y, y + sprite.z, 0x005400);
 				}
 			}
 		}
 	}
 
-	public void renderSprite(double x, double y, double z) {
+	public void renderSprite(double x, double y, double z, int col) {
 		double xo = x - xCam;
 		double yo = y + zCam / 8;
 		double zo = z - yCam;
@@ -140,17 +148,17 @@ public class Bitmap3D extends Bitmap {
 
 		zz *= 8;
 		for (int yp = yp0; yp < yp1; yp++) {
-			double pry = (yp - yPixel0) / (yPixel1 - yPixel0);
-			int yt = (int) (pry * 16.0);
+			double pry = (yp - Math.floor(yPixel0)) / (Math.floor(yPixel1) - Math.floor(yPixel0));
+			int yt = (int) (pry * 16);
 
 			for (int xp = xp0; xp < xp1; xp++) {
-				double prx = (xp - xPixel0) / (xPixel1 - xPixel0);
-				int xt = (int) (prx * 16.0);
+				double prx = (xp - Math.floor(xPixel0)) / (Math.floor(xPixel1) - Math.floor(xPixel0));
+				int xt = (int) (prx * 16);
 
 				if (depthBuffer[xp + yp * width] > zz) {
-					int col = Textures.floors.pixels[(xt & 15) + 64 + (yt & 15) * Textures.floors.width];
-					if (col != 0xff00ff) {
-						pixels[xp + yp * width] = col;
+					int colour = Textures.textures.pixels[xt + 16 * 3 + yt * Textures.textures.width] * col;
+					if (colour > 0) {
+						pixels[xp + yp * width] = colour;
 						depthBuffer[xp + yp * width] = zz;
 					}
 				}
@@ -158,7 +166,7 @@ public class Bitmap3D extends Bitmap {
 		}
 	}
 
-	public void renderWall(double x0, double y0, double x1, double y1) {
+	public void renderWall(double x0, double y0, double x1, double y1, int col) {
 		double xo0 = x0 - 0.5 - xCam;
 		double u0 = -0.5 + zCam / 8;
 		double d0 = 0.5 + zCam / 8;
@@ -209,10 +217,10 @@ public class Bitmap3D extends Bitmap {
 		if (xp1 > width)
 			xp1 = width;
 
-		double yPixel00 = (u0 / zz0 * fov + yCenter) + 0.5;
-		double yPixel10 = (u1 / zz1 * fov + yCenter) + 0.5;
-		double yPixel01 = (d0 / zz0 * fov + yCenter) + 0.5;
-		double yPixel11 = (d1 / zz1 * fov + yCenter) + 0.5;
+		double yPixel00 = (u0 / zz0 * fov + yCenter) - 0.5;
+		double yPixel10 = (u1 / zz1 * fov + yCenter) - 0.5;
+		double yPixel01 = (d0 / zz0 * fov + yCenter);
+		double yPixel11 = (d1 / zz1 * fov + yCenter);
 
 		double iz0 = 1 / zz0;
 		double iz1 = 1 / zz1;
@@ -234,8 +242,8 @@ public class Bitmap3D extends Bitmap {
 
 			if (yPixel0 > yPixel1)
 				return;
-			int yp0 = (int) yPixel0;
-			int yp1 = (int) yPixel1;
+			int yp0 = (int) Math.floor(yPixel0);
+			int yp1 = (int) Math.floor(yPixel1);
 			if (yp0 < 0)
 				yp0 = 0;
 			if (yp1 > height)
@@ -246,41 +254,47 @@ public class Bitmap3D extends Bitmap {
 				int yTex = (int) (py * 16);
 
 				depthBuffer[x + y * width] = 8 / iz;
-				// depthBuffer[x + y * width] = 0;
-				pixels[x + y * width] = Textures.floors.pixels[(xTex & 15) + 32 + ((yTex & 15) * Textures.floors.width)];
+				pixels[x + y * width] = Textures.textures.pixels[(xTex & 15) + 16 + ((yTex & 15) * Textures.textures.width)] * col;
 			}
 		}
 	}
 
 	public void renderFloor(double xx, double yy, double yd, int x, int y, int xPix, int yPix, int pX, int pY) {
 		if (yd >= 0 && xx >= pX * 16 && xx < pX * 16 + 16 && yy >= pY * 16 && yy < pY * 16 + 16) {
-			pixels[x + y * width] = Textures.floors.pixels[(xPix & 15) + 16 | (yPix & 15) * Textures.floors.width];
+			pixels[x + y * width] = Textures.textures.pixels[(xPix & 15) + 16 | (yPix & 15) * Textures.textures.width];
 		}
 	}
 
 	public void renderCeiling(double xx, double yy, double yd, int x, int y, int xPix, int yPix, int pX, int pY) {
 		if (yd <= 0 && xx >= pX * 16 && xx < pX * 16 + 16 && yy >= pY * 16 && yy < pY * 16 + 16) {
-			pixels[x + y * width] = Textures.floors.pixels[(xPix & 15) + 16 | (yPix & 15) * Textures.floors.width];
+			pixels[x + y * width] = Textures.textures.pixels[(xPix & 15) + 16 | (yPix & 15) * Textures.textures.width];
 		}
 	}
 
 	// col = colour
-	public void renderFog() {
+	public void renderFog(int shader) {
 		for (int i = 0; i < depthBuffer.length; i++) {
 			// abs = absolute value of... ie removes the negative (if any)
-			double t = Math.abs(i % width - width / 2.0) / (width / 1.5);
+			double t = Math.abs(i % width - width / 2.0) / (width / 1.4);
 
-			int col = pixels[i];
-			int r = (col >> 16) & 0xff;
-			int g = (col >> 8) & 0xff;
-			int b = (col) & 0xff;
-
-			double brightness = 255 - (depthBuffer[i] * 3 * (t * t * 3 + 1));
-
+			//                                fog dist \/
+			int brightness = (int) (255 - (depthBuffer[i] * 3 * (t * t * 3 + 1.3)));
+			
+			int xo = i % width;
+			int yo = i / width;
+			
+			// freaking dithering/shading! using the power of bitshifting!
+			brightness = brightness + (xo * shader + yo * 2 & 3) * 16 >> 5 << 5;
+			
 			if (brightness < 0)
 				brightness = 0;
 			if (brightness > 255)
 				brightness = 255;
+			
+			int col = pixels[i];
+			int r = (col >> 16) & 0xff;
+			int g = (col >> 8) & 0xff;
+			int b = (col) & 0xff;
 
 			r = (int) (r / 255.0 * brightness);
 			g = (int) (g / 255.0 * brightness);
