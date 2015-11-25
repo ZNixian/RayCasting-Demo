@@ -9,14 +9,11 @@ public class Player {
 	public double x, y, xa, ya, ra, rot;
 
 	public Player(Game game) {
-		this(game, 0, 0);
-	}
-
-	public Player(Game game, double x, double y) {
 		this.game = game;
 		this.level = game.level;
-		this.x = x;
-		this.y = y;
+		this.x = level.xSpawn;
+		this.y = level.ySpawn;
+		rot = -Math.PI / 2;
 	}
 
 	public void update(boolean up, boolean down, boolean left, boolean right, boolean turnLeft, boolean turnRight) {

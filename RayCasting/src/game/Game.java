@@ -11,7 +11,7 @@ public class Game {
 	public int time;
 	
 	public Game() {
-		level = new Level(32, 32,100);
+		level = Level.loadLevel("level0.png");
 		player = new Player(this);
 	}
 	
