@@ -26,9 +26,9 @@ public class ClientGame extends AbstractGame {
 	// to prevent wierd rendering problems
 	private ArrayList<Client> clients = new ArrayList<Client>();
 
-	public static Socket connect() {
+	public static Socket connect(String host) {
 		try {
-			Socket soc = new Socket("localhost", 4891);
+			Socket soc = new Socket(host, 4891);
 			return soc;
 		} catch (IOException ex) {
 			// it's fine, no server is running

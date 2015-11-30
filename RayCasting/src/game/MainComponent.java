@@ -32,6 +32,9 @@ public class MainComponent extends Canvas implements Runnable {
 	private Screen screen;
 	private InputHandler inputHandler;
 
+	private boolean multiplayer;
+	private String host;
+
 	public MainComponent() {
 		Dimension d = new Dimension(WIDTH * SCALE, HEIGHT * SCALE);
 		setMinimumSize(d);
@@ -61,10 +64,12 @@ public class MainComponent extends Canvas implements Runnable {
 	}
 
 	public void init() {
-		Socket connect = ClientGame.connect();
-		if (connect == null) {
+		if (!multiplayer) {
+			game = new SingleplayerGame();
+		} else if (host.equals("--host")) {
 			game = new HostGame();
 		} else {
+			Socket connect = ClientGame.connect(host);
 			game = new ClientGame(connect);
 		}
 
@@ -156,11 +161,23 @@ public class MainComponent extends Canvas implements Runnable {
 		System.exit(0);
 	}
 
+	/**
+	 * Use no arguments for singleplayer, --host to host, and a ip to connect to someone else.
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		JFrame f = new JFrame();
 		f.setTitle(TITLE);
 		f.setResizable(false);
 		MainComponent game = new MainComponent();
+
+		if (args.length == 0) {
+			game.multiplayer = false;
+		} else {
+			game.multiplayer = true;
+			game.host = args[0];
+		}
+
 		f.add(game);
 		f.pack();
 		f.setLocationRelativeTo(null);
