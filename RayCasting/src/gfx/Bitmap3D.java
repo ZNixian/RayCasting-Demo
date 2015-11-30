@@ -1,6 +1,6 @@
 package gfx;
 
-import game.Game;
+import game.AbstractGame;
 import level.Block;
 import level.Level;
 import level.Sprite;
@@ -18,7 +18,7 @@ public class Bitmap3D extends Bitmap {
 		depthBufferWall = new double[width];
 	}
 
-	public void render(Game game) {
+	public void render(AbstractGame game) {
 
 		for (int x = 0; x < width; x++) {
 			depthBufferWall[x] = 0;
@@ -75,6 +75,9 @@ public class Bitmap3D extends Bitmap {
 				}
 			}
 		}
+		
+		// misc renders from the game state (eg, other players)
+		game.render(this);
 	}
 
 	public void renderSprite(double x, double y, double z, int tex, int col) {

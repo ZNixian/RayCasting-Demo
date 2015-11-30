@@ -1,14 +1,14 @@
 package level;
 
-import game.Game;
+import game.AbstractGame;
 
 public class Player {
 
-	public Game game;
+	public AbstractGame game;
 	public Level level;
 	public double x, y, xa, ya, ra, rot;
 
-	public Player(Game game) {
+	public Player(AbstractGame game) {
 		this.game = game;
 		this.level = game.level;
 		this.x = level.xSpawn;

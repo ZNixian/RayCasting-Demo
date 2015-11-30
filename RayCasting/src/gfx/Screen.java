@@ -1,6 +1,6 @@
 package gfx;
 
-import game.Game;
+import game.AbstractGame;
 
 import java.util.Random;
 
@@ -22,7 +22,7 @@ public class Screen extends Bitmap{
 		perspectiveVison = new Bitmap3D(width, height);
 	}
 
-	public void render(Game game) {
+	public void render(AbstractGame game) {
 		clear();
 		perspectiveVison.render(game);
 		perspectiveVison.renderFog(3);

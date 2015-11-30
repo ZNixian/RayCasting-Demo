@@ -4,6 +4,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class Block {
+	public static final int NET_ID_SOLID = 1;
+	public static final int NET_ID_EMPTY = 2;
+	public static final int NET_ID_SPAWN = 3;
+	public static final int NET_ID_GRASS = 4;
+	
 	public boolean SOLID_RENDER = false;
 	public boolean SOLID_MOTION = false;
 
